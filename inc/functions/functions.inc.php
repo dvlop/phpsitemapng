@@ -96,30 +96,17 @@ function init() {
 
 	// set layout engine
 	$LAYOUT = new LayoutEngine("phpSitemapNG");
-	$LAYOUT->addContentFooter('<div align="center"><p>Copyright by enarion.net. This script is licensed under GPL and can be downloaded from
-					<a target="_blank" href="http://enarion.net/google/">enarion.net/google/</a></p></div>');
-	$LAYOUT->setTitle("create your personal google sitemap file");
+	$LAYOUT->setTitle("Create your sitemap files");
 	$LAYOUT->setCharSet("iso-8859-1");
-	$LAYOUT->addCss('.history, .required { background-color:#E0E0E0; }');
-	$LAYOUT->addCss('.source_fs { background-color:#FF70CC; }');
-	$LAYOUT->addCss('.source_website { background-color:#CCFF70; }');
-	$LAYOUT->addCss('.source_fs_website { background-color:#70CCFF; }');
 
-	$LAYOUT->addCss('.notfound { background-color:#FF3030; }');
-	$LAYOUT->addCss('Label {color:#000099; font-weight: bold; }');
-	$LAYOUT->addCss('h1,h2,h3 {color:#000099; }');
-	$LAYOUT->addCss('.error {color:#cc0000; font-weight: bold; }');
-	$LAYOUT->addCss('.warning {color:#000000; font-weight: italic; }');
-	$LAYOUT->addCss('.info {color:#000000; font-weight: normal; }');
-	$LAYOUT->addCss('.success {color:#009900; font-weight: bold; }');
-	$LAYOUT->addCss('body {color:#000000; font-family:helvetica; background-color:#ebb150; }');
+	$LAYOUT->addCssFile('./includes/layout.css');
+	$LAYOUT->addJsFile('./includes/tabbedPane.js');
+
 	$LAYOUT->switchOffBuffer();
 	print $LAYOUT->getHeaderLayout();
 
-/* repair NOTICES mk/2005-11-08 */
 	if (isset($_REQUEST[PSNG_DEBUG]))
 	{
-/**/
 		if ($_REQUEST[PSNG_DEBUG] == 'on') {
 			$SETTINGS[PSNG_DEBUG] = TRUE;
 			$_SESSION[PSNG_DEBUG] = TRUE;
@@ -129,40 +116,56 @@ function init() {
 			$SETTINGS[PSNG_DEBUG] = FALSE;
 			$_SESSION[PSNG_DEBUG] = FALSE;
 		}
-/* repair NOTICES mk/2005-11-08 */
 	}
-	else												# mk assume off
+	else												
 	{
 			debug('', 'Debug off');
 			$SETTINGS[PSNG_DEBUG] = FALSE;
 			$_SESSION[PSNG_DEBUG] = FALSE;
 	}
-/**/
 
 	if (isset($_SESSION[PSNG_SETTINGS])) $SETTINGS = array_merge($_SESSION[PSNG_SETTINGS],$SETTINGS);
+	$LAYOUT->addContentHeader('<a href="http://enarion.net/google/" target="_blank" title="Google Sitemap, XML sitemap, txt sitemap, rss sitemap, php sitemap generator, free, open source"><img src="./images/phpsitemapng.png" alt="phpSitemapNG - Create your sitemap files" style="border:0px;" /><br />phpSitemapNG - Create your sitemap files</a>');
 
-	$LAYOUT->addContentHeader('<a href="'.$SETTINGS[PSNG_SCRIPT].'?action=setup" title="Edit settings">Setup</a>');
-	$LAYOUT->addContentHeader('<a href="'.$SETTINGS[PSNG_SCRIPT].'?action='.PSNG_ACTION_CHECK_UPDATESTATUS.'" title="Invoke an update check at enarion.net to get information of recent versions">Check for updates</a>');
+	$LAYOUT->addContentHeader('<a href="'.$SETTINGS[PSNG_SCRIPT].'?action=setup" title="Edit settings"><img src="./images/setup.png" style="border:0px;" alt="Setup" title="Setup" /><br />Setup</a>');
 	if (isset($SETTINGS[PSNG_SETTINGS_EXECUTED][PSNG_ACTION_SETTINGS_GET]))
 	{
 		if ($SETTINGS[PSNG_SETTINGS_EXECUTED][PSNG_ACTION_SETTINGS_GET] == TRUE)
-			$LAYOUT->addContentHeader('<a href="'.$SETTINGS[PSNG_SCRIPT].'?action=parse" title="Start the scan for files">Start scan</a>');
+			$LAYOUT->addContentHeader('<a href="'.$SETTINGS[PSNG_SCRIPT].'?action=parse" title="Start the scan for files"><img src="./images/scan.png" style="border:0px;" alt="Scan" title="Scan" /><br />Start scan</a>');
 	}
-	if (@file_exists($SETTINGS[PSNG_SITEMAP_FILE]) && ( @filesize($SETTINGS[PSNG_SITEMAP_FILE]) > 0))
-		$LAYOUT->addContentHeader('<a href="'.$SETTINGS[PSNG_SITEMAP_URL].'" target="_blank" title="View the created sitemap in a new browser window">View sitemap </a>');
-	$LAYOUT->addContentHeader('<div align="left"><a href="http://enarion.net/google/phpsitemapng/feedback/" target="_blank" title="Create a feedback request at enarion.net in a new browser window">Give feedback</a>');
-	$LAYOUT->addContentHeader('<div align="left"><p>
-<form action="https://www.paypal.com/cgi-bin/webscr" method="post">
+/*	if (@file_exists($SETTINGS[PSNG_SITEMAP_FILE]) && ( @filesize($SETTINGS[PSNG_SITEMAP_FILE]) > 0))
+		$LAYOUT->addContentHeader('<a href="'.$SETTINGS[PSNG_SITEMAP_URL].'" target="_blank" title="View the created Google sitemap in a new browser window">View sitemap</a>');
+*/
+	$LAYOUT->addContentHeader('<div align="left"><a href="http://discuss.enarion.net/3/" target="_blank" title="Create a feedback request at enarion.net in a new browser window"><img src="./images/feedback.png" style="border:0px;" alt="Give feedback" title="Give feedback" /><br />Give feedback</a>');
+	$LAYOUT->addContentHeader('<div align="left"><p>Donate in US-$
+<form action="https://www.paypal.com/cgi-bin/webscr" method="post" target="_blank">
 <input type="hidden" name="cmd" value="_xclick">
 <input type="hidden" name="business" value="enarion@enarion.net">
 <input type="hidden" name="item_name" value="Development of phpSitemapNG">
 <input type="hidden" name="no_shipping" value="1">
 <input type="hidden" name="return" value="http://enarion.net/google/phpsitemapng/donated.php">
 <input type="hidden" name="no_note" value="1">
-<input type="hidden" name="currency_code" value="USD">
 <input type="hidden" name="tax" value="0">
-<input type="image" src="https://www.paypal.com/en_US/i/btn/x-click-but04.gif" border="0" name="submit" alt="Donate the development of phpSitemapNG" title="Donate the development of phpSitemapNG" target="_blank">
+<input type="hidden" name="currency_code" value="USD">
+<input type="image" src="./images/donate-with-paypal.gif" border="0" name="submit" alt="Donate for the ongoing development of phpSitemapNG" title="Donate for the ongoing development of phpSitemapNG" target="_blank">
+</form></p>
+<p>Donate in EUR
+<form action="https://www.paypal.com/cgi-bin/webscr" method="post" target="_blank">
+<input type="hidden" name="cmd" value="_xclick">
+<input type="hidden" name="business" value="enarion@enarion.net">
+<input type="hidden" name="item_name" value="Development of phpSitemapNG">
+<input type="hidden" name="no_shipping" value="1">
+<input type="hidden" name="return" value="http://enarion.net/google/phpsitemapng/donated.php">
+<input type="hidden" name="no_note" value="1">
+<input type="hidden" name="tax" value="0">
+<input type="hidden" name="currency_code" value="EUR">
+<input type="image" src="./images/donate-with-paypal.gif" border="0" name="submit" alt="Donate for the ongoing development of phpSitemapNG" title="Donate for the ongoing development of phpSitemapNG" target="_blank">
 </form></p></div>');
+	$LAYOUT->addContentHeader('<p style="width:120px;">Copyright by enarion.net. This script is licensed under GPL and is available at
+					<a target="_blank" href="http://enarion.net/google/">enarion.net/google/</a></p>');
+
+	$LAYOUT->addHtml('<div id="body">');
+
 
 	debug('version: '.PSNG_VERSION, 'This is phpSitemapNG');
 	debug($SETTINGS, 'Merged settings');

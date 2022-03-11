@@ -266,7 +266,7 @@ function runCrawler($FILE, $FILES_CACHE) {
 
 			$http_status = $fileinfo['http_status'];
 			// create and setup valid values
-			$fileinfo = handleURL($fileinfo['file'], $fileinfo['lastmod'], $fileinfo['changefreq'], $fileinfo['priority']);
+			$fileinfo = handleURL($fileinfo['file'], $fileinfo['lastmod'], $fileinfo['changefreq'], $fileinfo['priority'], $fileinfo['title']);
 
 			$fileinfo = handleURLCached($FILES_CACHE, $fileinfo);
 
@@ -332,7 +332,7 @@ function handleURLCached($FILES_CACHE, $fileInfo) {
 /**
  * returns a correct entry for a fileinfo with given information and settings
  */
-function handleURL($url, $lastmod = '', $changefreq = '', $priority = '') {
+function handleURL($url, $lastmod = '', $changefreq = '', $priority = '', $title = '') {
 	global $SETTINGS;
 	$res = array();
 
@@ -381,6 +381,8 @@ function handleURL($url, $lastmod = '', $changefreq = '', $priority = '') {
 		$res[PSNG_PRIORITY] = '';
 	}
 
+	$res[PSNG_FILE_TITLE] = $title;
+	
 	return $res;
 }
 
@@ -412,6 +414,12 @@ function handleDoubleEntryFilesystemWebsite($fs, $website) {
 			$res[PSNG_PRIORITY] = $fs[PSNG_PRIORITY];
 		} else { // empty value or only in website
 			$res[PSNG_PRIORITY] = $website[PSNG_PRIORITY];
+		}
+
+		if (($fs[PSNG_FILE_TITLE] != '' && $website[PSNG_FILE_TITLE] != '') || ($fs[PSNG_FILE_TITLE] != '' && $website[PSNG_FILE_TITLE] == '')) {
+			$res[PSNG_FILE_TITLE] = $fs[PSNG_FILE_TITLE];
+		} else { // empty value or only in website
+			$res[PSNG_FILE_TITLE] = $website[PSNG_FILE_TITLE];
 		}
 	};
 
@@ -445,51 +453,110 @@ function displaySitemapEdit($FILE) {
 function writeSitemap($FILE) {
 	global $SETTINGS, $openFile_error, $LAYOUT;
 	$LAYOUT->setTitle("Writing sitemap");
-	$gsg = new GsgXml($SETTINGS[PSNG_WEBSITE]);
-
+	$website = $SETTINGS[PSNG_WEBSITE];
+	if (substr($website,-1,1) == '/' ) $website = substr($website,0,strlen($website)-1);
+	
 	$numb = 0;
 	$txtfilehandle = null;
+	$htmlfilehandle = null;
 
+	if (isset($SETTINGS[PSNG_SITEMAP_FILE]) && strlen($SETTINGS[PSNG_SITEMAP_FILE]) > 0) {
+		$gsg = new GsgXml($SETTINGS[PSNG_WEBSITE]);
+		$gsg->setGssHeader($SETTINGS[PSNG_GSSHEADER] == 1); // set usage of gss header
+	}
+	
 	if (isset($SETTINGS[PSNG_TXTSITEMAP_FILE]) && strlen($SETTINGS[PSNG_TXTSITEMAP_FILE])>0) {
 		$txtfilehandle = openFile($SETTINGS[PSNG_PAGEROOT]. $SETTINGS[PSNG_TXTSITEMAP_FILE], TRUE);
 		if ($txtfilehandle === FALSE) {
-			$LAYOUT->addError($openFile_error, 'Could not write sitemap');
-			return FALSE;
+			$LAYOUT->addError($openFile_error, 'Could not write txt sitemap file');
 		}
-		
+	}
+
+	if (isset($SETTINGS[PSNG_HTMLSITEMAP_FILE]) && strlen($SETTINGS[PSNG_HTMLSITEMAP_FILE])>0) {
+		$htmlfilehandle = openFile($SETTINGS[PSNG_PAGEROOT]. $SETTINGS[PSNG_HTMLSITEMAP_FILE], TRUE);
+		if ($htmlfilehandle === FALSE) {
+			$LAYOUT->addError($openFile_error, 'Could not write html sitemap file');
+		}
+	}
+
+	if (isset($SETTINGS[PSNG_RSSSITEMAP_FILE]) && strlen($SETTINGS[PSNG_RSSSITEMAP_FILE])>0) {
+		$rss = new UniversalFeedCreator();
+		$rss->useCached();
+		$rss->title = "Sitemap of ".$SETTINGS[PSNG_WEBSITE];
+		// TODO use description?
+		//$rss->description = "daily news from the PHP scripting world";
+		$rss->link = $SETTINGS[PSNG_WEBSITE];
+		$rss->syndicationURL = $SETTINGS[PSNG_WEBSITE].$SETTINGS[PSNG_RSSSITEMAP_FILE];
+
+		// TODO use image ???
+		/*
+		$image = new FeedImage();
+		$image->title = "dailyphp.net logo";
+		$image->url = "http://www.dailyphp.net/images/logo.gif";
+		$image->link = "http://www.dailyphp.net";
+		$image->description = "Feed provided by dailyphp.net. Click to visit.";
+		$rss->image = $image;
+		*/ 
 	}
 
 	foreach ($FILE as $numb => $value) {
 		if ($value[PSNG_FILE_ENABLED] != '') {
 			debug($value, "Adding file ".$value[PSNG_FILE_URL]);
 			if (isset($txtfilehandle)) fputs($txtfilehandle, $value[PSNG_FILE_URL]."\n");
-			if ($gsg->addUrl($value[PSNG_FILE_URL], FALSE, $value[PSNG_LASTMOD], FALSE, $value[PSNG_CHANGEFREQ], $value[PSNG_PRIORITY]) === FALSE) {
-				$LAYOUT->addError($value[PSNG_FILE_URL], 'Could not add file to sitemap' . $gsg->errorMsg);
+			
+			if (isset($SETTINGS[PSNG_RSSSITEMAP_FILE]) && strlen($SETTINGS[PSNG_RSSSITEMAP_FILE])>0) {
+			 	$item = new FeedItem();
+			    $item->title = $value[PSNG_FILE_TITLE];
+			    $item->link = $value[PSNG_FILE_URL];
+			    //$item->description = $data->short;
+			    $item->date = $value[PSNG_FILE_LASTMOD];
+			    //$item->source = "http://www.dailyphp.net";
+				//$item->author = "John Doe"; 
+				$rss->addItem($item); 
+			}
+			
+			if (isset($htmlfilehandle)) // todo handle this in an external class (takes the urls and titles, writes a nice and clean sitemap file)
+				fputs($htmlfilehandle, '<a href="'.$value[PSNG_FILE_URL].'" title="'.$value[PSNG_FILE_TITLE].'">'.$value[PSNG_FILE_TITLE].'</a><br />'."\n");
+				
+			if (isset($SETTINGS[PSNG_SITEMAP_FILE]) && strlen($SETTINGS[PSNG_SITEMAP_FILE]) > 0) {
+				if ($gsg->addUrl($value[PSNG_FILE_URL], FALSE, $value[PSNG_LASTMOD], FALSE, $value[PSNG_CHANGEFREQ], $value[PSNG_PRIORITY]) === FALSE) {
+					$LAYOUT->addError($value[PSNG_FILE_URL], 'Could not add file to sitemap' . $gsg->errorMsg);
+				}
 			}
 		} else {
 			debug($value[PSNG_FILE_URL], 'Not enabled, so not writing file to sitemap');
 		}
 	}
-
-	$filehandle = openFile($SETTINGS[PSNG_PAGEROOT]. $SETTINGS[PSNG_SITEMAP_FILE], TRUE);
-	if ($filehandle === FALSE) {
-		$LAYOUT->addError($openFile_error, 'Could not write sitemap');
-		return FALSE;
+	if (isset($SETTINGS[PSNG_SITEMAP_FILE]) && strlen($SETTINGS[PSNG_SITEMAP_FILE]) > 0) {
+		$filehandle = openFile($SETTINGS[PSNG_PAGEROOT]. $SETTINGS[PSNG_SITEMAP_FILE], TRUE);
+		if ($filehandle === FALSE) {
+			$LAYOUT->addError($openFile_error, 'Could not write xml sitemap');
+			return FALSE;
+		}
+		$xml = $gsg->output(TRUE, $SETTINGS[PSNG_COMPRESS_SITEMAP], FALSE);
+		fputs ($filehandle, $xml);
+		fclose ($filehandle);
 	}
-	$xml = $gsg->output(TRUE, $SETTINGS[PSNG_COMPRESS_SITEMAP], FALSE);
-
-	fputs ($filehandle, $xml);
-	fclose ($filehandle);
+	
 	if (isset($txtfilehandle)) fclose($txtfilehandle);
+	if (isset($htmlfilehandle)) fclose($htmlfilehandle);
+	if (isset($SETTINGS[PSNG_RSSSITEMAP_FILE]) && strlen($SETTINGS[PSNG_RSSSITEMAP_FILE])>0) {
+		$rss->saveFeed("RSS1.0", $SETTINGS[PSNG_PAGEROOT]. $SETTINGS[PSNG_RSSSITEMAP_FILE], false );
+	} 
+	if (isset($SETTINGS[PSNG_HTMLSITEMAP_FILE]) && strlen($SETTINGS[PSNG_HTMLSITEMAP_FILE])>0) {
+		$rss->saveFeed("HTML", $SETTINGS[PSNG_PAGEROOT]. $SETTINGS[PSNG_HTMLSITEMAP_FILE], false );
+	} 
 
 	if ($numb > 50000) {
 		$LAYOUT->addWarning('Not implemented: split result into files with only 50000 entries','Only 50000 entries are allowed in one sitemap file at the moment!');
 	}
 	$LAYOUT->addSuccess('Sitemap successfuly created and saved to <a href="'.$SETTINGS[PSNG_SITEMAP_URL].'" target="_blank">'.basename($SETTINGS[PSNG_SITEMAP_FILE]).'</a>!');
-	if (isset($SETTINGS[PSNG_TXTSITEMAP_FILE]) && strlen($SETTINGS[PSNG_TXTSITEMAP_FILE])>0) $LAYOUT->addSuccess('Txt-Sitemap successfuly created and saved to <a href="'.$SETTINGS[PSNG_TXTSITEMAP_URL].'" target="_blank">'.basename($SETTINGS[PSNG_TXTSITEMAP_FILE]).'</a>!');
+	if (isset($SETTINGS[PSNG_TXTSITEMAP_FILE]) && strlen($SETTINGS[PSNG_TXTSITEMAP_FILE])>0) $LAYOUT->addSuccess('Txt-Sitemap successfuly created and saved to <a href="'.$SETTINGS[PSNG_TXTSITEMAP_FILE].'" target="_blank">'.basename($SETTINGS[PSNG_TXTSITEMAP_FILE]).'</a>!');
+	if (isset($SETTINGS[PSNG_HTMLSITEMAP_FILE]) && strlen($SETTINGS[PSNG_HTMLSITEMAP_FILE])>0) $LAYOUT->addSuccess('HTML-Sitemap successfuly created and saved to <a href="'.$SETTINGS[PSNG_HTMLSITEMAP_FILE].'" target="_blank">'.basename($SETTINGS[PSNG_HTMLSITEMAP_FILE]).'</a>!');
+	if (isset($SETTINGS[PSNG_RSSSITEMAP_FILE]) && strlen($SETTINGS[PSNG_RSSSITEMAP_FILE])>0) $LAYOUT->addSuccess('RSS-Sitemap successfuly created and saved to <a href="'.$SETTINGS[PSNG_RSSSITEMAP_FILE].'" target="_blank">'.basename($SETTINGS[PSNG_RSSSITEMAP_FILE]).'</a>!');
 	$LAYOUT->addText('<form action="' . $SETTINGS[PSNG_SCRIPT] . '" method="post">' ."\n".
 			'<input type="hidden" name="'.PSNG_SETTINGS_ACTION.'" value="'.PSNG_ACTION_SETTINGS_PINGGOOGLE.'">' . "\n".
-			'<input type="Submit" value="Submit to google" name="submit">' . "\n".
+			'<input type="Submit" value="Submit to search engines" name="submit">' . "\n".
 			'</form>' . "\n");
 
 	return TRUE;
@@ -516,6 +583,7 @@ function writeSitemapUserinput() {
 		$files[$key][PSNG_LASTMOD] = $value[PSNG_LASTMOD];
 		$files[$key][PSNG_CHANGEFREQ] = $value[PSNG_CHANGEFREQ];
 		$files[$key][PSNG_PRIORITY] = $value[PSNG_PRIORITY];
+		$files[$key][PSNG_FILE_TITLE] = $value[PSNG_FILE_TITLE];
 	}
 
 	if($SETTINGS[PSNG_STORE_FILELIST] != '') {
@@ -539,20 +607,88 @@ function writeSitemapUserinput() {
  */
 function submitPageToGoogle() {
 	global $SETTINGS, $LAYOUT;
-	$LAYOUT->setTitle('Submit sitemap to google');
+	$LAYOUT->setTitle('Submit sitemap to search engines');
 
-	$res = fopen("http://www.google.com/webmasters/sitemaps/ping?sitemap=".urlencode($SETTINGS['website'].$SETTINGS[PSNG_SITEMAP_URL]),"r");
-	if ($res === FALSE) {
-		$LAYOUT->addError('', 'Error while submitting '.$SETTINGS[sitemap_url].'to google!');
+	if ($SETTINGS[PSNG_PINGGOOGLE] == true) {
+		$res = fopen("http://www.google.com/webmasters/sitemaps/ping?sitemap=".urlencode($SETTINGS['website'].$SETTINGS[PSNG_SITEMAP_URL]),"r");
+		if ($res === FALSE) {
+			$LAYOUT->addError('', 'Error while submitting '.$SETTINGS[sitemap_url].'to google!');
+		}
+	
+		$str = "";
+		while (!feof($res)) {
+			$str .= fread($res, 1000);
+		}
+		fclose($res);
+		$LAYOUT->addSuccess('Result was: <i>'.	strip_tags($str, '<br> <h2> <h1>')	. '</i>',
+							 'Your sitemap file has been successfuly sent to Google!');
+	} else {
+		$LAYOUT->addInfo('No Google Sitemap submission because not activated at the setup page.');
+	}
+	$LAYOUT->addHtml('<hr />');
+
+	if ($SETTINGS[PSNG_PINGYAHOO] == true) {	 
+/*		$LAYOUT->addText('<p>A new window will open that redirects to the appropriate website at Yahoo. Click <a href="http://submit.search.yahoo.com/free/request?feed='.urlencode($SETTINGS[PSNG_WEBSITE].$SETTINGS[PSNG_RSSSITEMAP_FILE]).'&.submit=Submit Feed&class=Search&pass=1">here</a> if no window occured.');
+		$LAYOUT->addText('<script type="text/javascript">
+		<!--
+		window.open("http://submit.search.yahoo.com/free/request?feed='.urlencode($SETTINGS[PSNG_WEBSITE].$SETTINGS[PSNG_RSSSITEMAP_FILE]).'&.submit=Submit Feed&class=Search&pass=1", "_blank");
+		//-->
+		</script>');*/
+		$LAYOUT->addSuccess('Result was: <i>'.	pingYahoo($SETTINGS[PSNG_WEBSITE].$SETTINGS[PSNG_RSSSITEMAP_FILE])	. '</i>',
+							 'Your sitemap file has been successfuly sent to Yahoo!');
+		
+	} else {
+		$LAYOUT->addInfo('No Yahoo submission because not activated at the setup page.');
+	}
+	$LAYOUT->addHtml('<hr />');
+
+	if ($SETTINGS[PSNG_PINGMSN] == true) {	 
+		$LAYOUT->addText('<p>A new window will open that redirects to the appropriate website at Google. Click <a href="http://search.msn.com/docs/submit.aspx?url='.urlencode($SETTINGS[PSNG_WEBSITE].$SETTINGS[PSNG_RSSSITEMAP_FILE]).'">here</a> if no window occured.');
+		$LAYOUT->addText('<script type="text/javascript">
+		<!--
+		window.open("http://search.msn.com/docs/submit.aspx?url='.urlencode($SETTINGS[PSNG_WEBSITE].$SETTINGS[PSNG_RSSSITEMAP_FILE]).'", "_blank");
+		//-->
+		</script>');
+	} else {
+		$LAYOUT->addInfo('No MSN Sitemap submission because not activated at the setup page.');
 	}
 
-	$str = "";
-	while (!feof($res)) {
-		$str .= fread($res, 1000);
-	}
-	fclose($res);
-	$LAYOUT->addSuccess('Result was: <i>'.	strip_tags($str, '<br> <h2> <h1>')	. '</i>',
-							 'Your sitemap file has been successfuly sent to google!');
 	return TRUE;
 }
+
+function pingYahoo($url) {
+	// code taken from http://developer.yahoo.com/php/samples/request/requestFILEGC.txt
+
+	$request = 'http://api.search.yahoo.com/SiteExplorerService/V1/updateNotification?appid=phpSitemapNG&url=' . urlencode($url);
+
+	$xml = file_get_contents($request);
+
+	list ($version, $status_code, $msg) = explode(' ', $http_response_header[0], 3);
+	debug(htmlspecialchars($xml, ENT_QUOTES));
+
+	// Check the HTTP Status code
+	switch ($status_code) {
+		case 200 :
+			// Success
+			break;
+		case 503 :
+			return ('Your call to Yahoo Web Services failed and returned an HTTP status of 503. That means: Service unavailable. An internal problem prevented us from returning data to you.');
+			break;
+		case 403 :
+			return ('Your call to Yahoo Web Services failed and returned an HTTP status of 403. That means: Forbidden. You do not have permission to access this resource, or are over your rate limit.');
+			break;
+		case 400 :
+			// You may want to fall through here and read the specific XML error
+			return ('Your call to Yahoo Web Services failed and returned an HTTP status of 400. That means:  Bad request. The parameters passed to the service did not match as expected. The exact error is returned in the XML response.');
+			break;
+		default :
+			return ('Your call to Yahoo Web Services returned an unexpected HTTP status of:' . $status_code);
+	}
+	if (strpos($xml, '<Success') !== false) {
+		$begin = strpos($xml, '<Message>') + strlen('<Message>');
+		$end = strpos($xml, '</Message>');
+		return substr($xml, $begin, $end - $begin);
+	}
+}
+
 ?>

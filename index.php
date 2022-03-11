@@ -42,10 +42,6 @@ switch ($state) {
 	case PSNG_ACTION_SETTINGS_PINGGOOGLE:
 		submitPageToGoogle();		
 		break;
-
-	case PSNG_ACTION_CHECK_UPDATESTATUS:
-		checkUpdateStatus();
-		break;
 	
 	default:
 		viewSetup();

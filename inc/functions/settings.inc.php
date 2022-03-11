@@ -15,6 +15,16 @@
 function viewSetup($resetSettings = FALSE) {
 	global $SETTINGS, $LAYOUT;
 
+	if (isUpdateAvailable() == true) {
+		$LAYOUT->addText('<script type="text/javascript">
+		<!--
+		if (confirm("A new version of phpSitemapNG is available. Would you like to download it now?") == true) {
+			window.open("http://enarion.net/google/phpsitemapng/download/", "_blank");
+		}
+		//-->
+		</script>');
+	}
+
 	$LAYOUT->setTitle('Edit settings');
 
 	if($resetSettings === TRUE) {
@@ -27,6 +37,8 @@ function viewSetup($resetSettings = FALSE) {
 
 	if (is_null($SETTINGS[PSNG_SITEMAP_FILE])) 	$SETTINGS[PSNG_SITEMAP_FILE] 		= "/sitemap.xml";
 	if (is_null($SETTINGS[PSNG_TXTSITEMAP_FILE])) 	$SETTINGS[PSNG_TXTSITEMAP_FILE] = "/sitemap.txt";
+	if (is_null($SETTINGS[PSNG_HTMLSITEMAP_FILE])) 	$SETTINGS[PSNG_HTMLSITEMAP_FILE] = "/sitemap.html";
+	if (is_null($SETTINGS[PSNG_RSSSITEMAP_FILE])) 	$SETTINGS[PSNG_RSSSITEMAP_FILE] = "/sitemap.rss";
 //	if (is_null($SETTINGS[PSNG_SITEMAP_FILE])) 	$SETTINGS[PSNG_SITEMAP_FILE] 		= $SETTINGS[PSNG_PAGEROOT] . "/sitemap.xml";
 //	if (is_null($SETTINGS[PSNG_SITEMAP_URL])) 	$SETTINGS[PSNG_SITEMAP_URL] 		= $SETTINGS[PSNG_WEBSITE] ."/sitemap.xml";
 	if (is_null($SETTINGS[PSNG_TEMP_DIR]))		$SETTINGS[PSNG_TEMP_DIR] 			= dirname(__FILE__) . "/temp/";
@@ -34,8 +46,12 @@ function viewSetup($resetSettings = FALSE) {
 	if (is_null($SETTINGS[PSNG_SCAN_LOCAL]))	$SETTINGS[PSNG_SCAN_LOCAL] 			= TRUE;
 	if (is_null($SETTINGS[PSNG_SCAN_WEBSITE]))	$SETTINGS[PSNG_SCAN_WEBSITE] 		= TRUE;
 	if (is_null($SETTINGS[PSNG_PINGGOOGLE]))	$SETTINGS[PSNG_PINGGOOGLE] 			= TRUE;
+	if (is_null($SETTINGS[PSNG_PINGYAHOO]))		$SETTINGS[PSNG_PINGYAHOO] 			= TRUE;
+	if (is_null($SETTINGS[PSNG_PINGMSN]))		$SETTINGS[PSNG_PINGMSN] 			= TRUE;
 	if (is_null($SETTINGS[PSNG_EDITRESULT]))	$SETTINGS[PSNG_EDITRESULT] 			= PSNG_EDITRESULT_TRUE;
 	if (is_null($SETTINGS[PSNG_STORE_FILELIST])) $SETTINGS[PSNG_STORE_FILELIST] 	= TRUE;
+
+	if (!isset($SETTINGS[PSNG_GSSHEADER]))		$SETTINGS[PSNG_GSSHEADER] 			= true;
 
 //	if (!isset($SETTINGS[PSNG_TIMEOUT]))		$SETTINGS[PSNG_TIMEOUT] 			= PSNG_TIMEOUT_AUTOMATIC; //($SETTINGS[PSNG_TIMEOUT_AUTOMATIC] == TRUE)?PSNG_TIMEOUT_AUTOMATIC:PSNG_TIMEOUT_NONE;
 	if (!isset($SETTINGS[PSNG_TIMEOUT]))		$SETTINGS[PSNG_TIMEOUT] 			= PSNG_TIMEOUT_FORCE;
@@ -138,6 +154,8 @@ function getSettings() {
 */
 	$SETTINGS[PSNG_SITEMAP_FILE] = $_REQUEST[PSNG_SITEMAP_FILE];
 	$SETTINGS[PSNG_TXTSITEMAP_FILE] = $_REQUEST[PSNG_TXTSITEMAP_FILE];
+	$SETTINGS[PSNG_RSSSITEMAP_FILE] = $_REQUEST[PSNG_RSSSITEMAP_FILE];
+	$SETTINGS[PSNG_HTMLSITEMAP_FILE] = $_REQUEST[PSNG_HTMLSITEMAP_FILE];
 	$SETTINGS[PSNG_SITEMAP_URL] = $_REQUEST[PSNG_SITEMAP_FILE];
 
 	if (isset($_REQUEST[PSNG_TIMEOUT])) {
@@ -151,10 +169,12 @@ function getSettings() {
 	}
 
 	if (isset($_REQUEST[PSNG_CRAWLER_URL]))		$SETTINGS[PSNG_CRAWLER_URL] = $_REQUEST[PSNG_CRAWLER_URL];
-
+	$SETTINGS[PSNG_GSSHEADER] = strlen($_REQUEST[PSNG_GSSHEADER])>0; // true, if a value is set
 	if (isset($_REQUEST[PSNG_SCAN_LOCAL]))		$SETTINGS[PSNG_SCAN_LOCAL] = TRUE; else $SETTINGS[PSNG_SCAN_LOCAL] = FALSE;
 	if (isset($_REQUEST[PSNG_SCAN_WEBSITE]))	$SETTINGS[PSNG_SCAN_WEBSITE] = TRUE; else $SETTINGS[PSNG_SCAN_WEBSITE] = FALSE;
 	if (isset($_REQUEST[PSNG_PINGGOOGLE]))		$SETTINGS[PSNG_PINGGOOGLE] = TRUE; else $SETTINGS[PSNG_PINGGOOGLE] = FALSE;
+	if (isset($_REQUEST[PSNG_PINGYAHOO]))		$SETTINGS[PSNG_PINGYAHOO] = TRUE; else $SETTINGS[PSNG_PINGYAHOO] = FALSE;
+	if (isset($_REQUEST[PSNG_PINGMSN]))			$SETTINGS[PSNG_PINGMSN] = TRUE; else $SETTINGS[PSNG_PINGMSN] = FALSE;
 	if (isset($_REQUEST[PSNG_SCAN_WEBSITE]))	$SETTINGS[PSNG_SCAN_WEBSITE] = TRUE; else $SETTINGS[PSNG_SCAN_WEBSITE] = FALSE;
 	if (isset($_REQUEST[PSNG_SCAN_WEBSITE_LEVEL])) $SETTINGS[PSNG_SCAN_WEBSITE_LEVEL] = $_REQUEST[PSNG_SCAN_WEBSITE_LEVEL]; else $SETTINGS[PSNG_SCAN_WEBSITE_LEVEL] = 0;
 
@@ -212,8 +232,8 @@ function getSettings() {
 
 function checkUpdateStatus() {
 	global $LAYOUT, $SETTINGS;
-	if (array_key_exists('last_update_time', $SETTINGS) && (time() - $SETTINGS['last_update_time'] < 3600)) {
-		$LAYOUT->addWarning('Checking for new updates is only allowed once per hour. Last check was ' . getDateTimeISO($SETTINGS['last_update_time']));
+	if (array_key_exists('last_update_time', $SETTINGS) && (time() - $SETTINGS['last_update_time'] < 3600*24)) {
+		$LAYOUT->addWarning('Checking for new updates is only allowed once per day. Last check was ' . getDateTimeISO($SETTINGS['last_update_time']));
 		return TRUE;
 	}
 	$SETTINGS['last_update_time'] = time();
@@ -248,6 +268,30 @@ function checkUpdateStatus() {
 			$LAYOUT->addWarning('Latest version of this release is ' .$currentVersion,'New version available!');
 	}
 	return TRUE;
+}
+
+/**
+ * returns true if a new version is available, false otherwise
+ */
+function isUpdateAvailable() {
+	global $SETTINGS;
+	if (array_key_exists('last_update_time', $SETTINGS) && (time() - $SETTINGS['last_update_time'] < 3600*24)) {
+		return false;
+	}
+
+	$res = file(PSNG_URL_UPDATESTATUS);
+	$SETTINGS['last_update_time'] = time();
+
+	if (count($res) == 0) {
+		$LAYOUT->addError("Couldn't connect to check latest version");
+		return FALSE;
+	}
+
+	// current updatestatus only supports one line of response, upcoming might support more than one
+	$stat = explode('---', trim($res[0]));
+	$currentVersion = (isset($stat[0])) ? trim($stat[0]) : '';
+
+	return version_compare($currentVersion,PSNG_VERSION) < 0;
 }
 
 ?>

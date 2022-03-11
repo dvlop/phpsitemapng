@@ -10,7 +10,7 @@
 */
 
 // generic strings
-define("PSNG_VERSION", '1.5.3');
+define("PSNG_VERSION", '1.5.4b');
 define("PSNG_FILE_LIMIT", 500);
 
 define("PSNG_DEBUG", 'debug');
@@ -45,11 +45,14 @@ define("PSNG_TIMEOUT_FILE_LASTRUN", 'timeout_file_lastrun');
 define("PSNG_PAGEROOT", 'page_root');
 define("PSNG_WEBSITE", 'website');
 define("PSNG_PINGGOOGLE", 'ping_google');
+define("PSNG_PINGYAHOO", 'ping_yahoo');
+define("PSNG_PINGMSN", 'ping_msn');
 define("PSNG_COMPRESS_SITEMAP", 'compress_sitemap');
 define("PSNG_EDITRESULT", 'edit_result');
 define("PSNG_EDITRESULT_TRUE", 'edit_result_TRUE');
 define("PSNG_EDITRESULT_FALSE", 'edit_result_FALSE');
-define("PSNG_STORE_FILELIST", 'store_filelist'); // TODO necessary with upcoming Sitemap?
+define("PSNG_STORE_FILELIST", 'store_filelist');
+define("PSNG_GSSHEADER", 'gssheader');
 
 define("PSNG_SCAN", 'scan');
 define("PSNG_SCAN_LOCAL", 'scan_local');
@@ -68,6 +71,8 @@ define("PSNG_PUBLIC_URL", 'public_url');
 define("PSNG_SITEMAP_URL", 'sitemap_url');
 define("PSNG_SITEMAP_FILE", 'sitemap_file');
 define("PSNG_TXTSITEMAP_FILE", 'txtsitemap_file');
+define("PSNG_HTMLSITEMAP_FILE", 'htmlsitemap_file');
+define("PSNG_RSSSITEMAP_FILE", 'rsssitemap_file');
 
 define("PSNG_LASTMOD", 'lastmod');
 define("PSNG_LASTMOD_DISSABLED", 'lastmod_dissabled');
@@ -89,6 +94,7 @@ define("PSNG_CHANGEFREQ_FIXED", 'changefreq_fixed');
 define("PSNG_FILE_ENABLED", 'file_enabled');
 define("PSNG_FILE_URL", 'file_url');
 define("PSNG_FILE_DIRNAME", 'file_url');
+define("PSNG_FILE_TITLE", 'title');
 
 // action names
 define("PSNG_ACTION", PSNG_SETTINGS_ACTION);

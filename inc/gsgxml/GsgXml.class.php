@@ -90,6 +90,8 @@
         var $maxURLs = 50000;
 
 		var $errorMsg = '';
+		
+		var $withGssHeader = false;
 
         /**
          * GsgXml constructor
@@ -195,6 +197,13 @@
 
             $this->urls[] = $data;
         }
+        
+        /**
+         * set to true (default) if GSS header should be added
+         */
+        function setGssHeader($value = true) {
+        	$this->withGssHeader = $value;
+        }
 
 
         /**
@@ -255,6 +264,7 @@
             $ret = array();
 
             $ret[] = sprintf('<?xml version="1.0" encoding="%s"?>', $this->xmlEncoding);
+            if ($this->withGssHeader === true) $ret[] = sprintf('<?xml-stylesheet type="text/xsl" href="gss.xsl"?>');
             $ret[] = sprintf('<urlset xmlns="http://www.google.com/schemas/sitemap/0.84"
 xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
 xsi:schemaLocation="http://www.google.com/schemas/sitemap/0.84 http://www.google.com/schemas/sitemap/0.84/sitemap.xsd">');

@@ -3,11 +3,12 @@
 	debug($FILE, "templates/edit_files: will display following files");
 	$layout = '
 	<form action="'.$SETTINGS[PSNG_SCRIPT].'" method="post">
-	<input type="submit" name="submit" value="Create file">
+	<input type="submit" name="submit" value="Create files">
 	<input type="hidden" name="'.PSNG_SETTINGS_ACTION.'" value="'.PSNG_ACTION_SETTINGS_WRITESITEMAP_USERINPUT.'">
 	<table>
 		<th>Number</th>
 		<th>Filename</th>
+		<th>Page title</th>
 		'.(($SETTINGS[PSNG_LASTMOD] != PSNG_LASTMOD_DISSABLED)?'<th>Last modification</th>':'').'
 		'.(($SETTINGS[PSNG_CHANGEFREQ] != PSNG_CHANGEFREQ_DISSABLED)?'<th>Change frequency</th>':'').'
 		'.(($SETTINGS[PSNG_PRIORITY] != PSNG_PRIORITY_DISSABLED)?'<th>Priority</th>':'').'
@@ -39,6 +40,8 @@
 		$layout .= '<tr '. $fileinfo[PSNG_HTML_SOURCE] .  '>
 			<td '.$fileinfo[PSNG_HTML_HISTORY] .'><input type="checkbox" '.( ($fileinfo[PSNG_FILE_ENABLED] != '') ? 'checked' : '' ).' name="FILE['.$numb.']['.PSNG_FILE_ENABLED.']" value="TRUE">'.$numb.'</td>
 			<td class="filename"><input type="hidden" name="FILE['.$numb.']['.PSNG_FILE_URL.']" value="'.$fileinfo[PSNG_FILE_URL].'">'.$fileinfo[PSNG_FILE_DIRNAME].'</td>
+		'.'
+			<td class="title"><input class="title" type="text" name="FILE['.$numb.']['.PSNG_FILE_TITLE.']" value="'.$fileinfo[PSNG_FILE_TITLE].'" size="50" maxsize="200")></td>
 		'.(($SETTINGS[PSNG_LASTMOD] != PSNG_LASTMOD_DISSABLED)?'
 			<td class="lastmod"><input class="lastmod" type="text" name="FILE['.$numb.']['.PSNG_LASTMOD.']" value="'.$fileinfo[PSNG_LASTMOD].'" size="24"></td>
 		':'').'
@@ -77,6 +80,6 @@
 	if ($count[PSNG_HTML_SOURCE_WEBSITE] != '') $layout .= '<tr '.PSNG_HTML_SOURCE_WEBSITE.'><td colspan="'.$count['numb'].'">A row with this background means that this file has been found with the crawler engine</td></tr>'."\n";
 	if ($count[PSNG_HTML_SOURCE_FS_WEBSITE] != '') $layout .= '<tr '.PSNG_HTML_SOURCE_FS_WEBSITE.'><td colspan="'.$count['numb'].'">A row with this background means that this file is stored on filesystem and there are links to this file.</td></tr>'."\n";
 
-	$layout .= '</table></form>'."\n";
+	$layout .= '</table><input type="submit" name="submit" value="Create files"></form>'."\n";
 
 ?>

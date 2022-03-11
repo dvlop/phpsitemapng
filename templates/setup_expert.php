@@ -37,8 +37,19 @@ if (!isset($SETTINGS[PSNG_COMPRESS_SITEMAP])) $SETTINGS[PSNG_COMPRESS_SITEMAP] =
 	<div align="center">
 	<form name="setupExpert" action="'.$SETTINGS[PSNG_SCRIPT].'" method="post">
 	<input type="hidden" name="'.PSNG_ACTION.'" value="'.PSNG_ACTION_SETTINGS_GET.'">
-	<fieldset style="padding: 10; width:600; border-color:#000099; border-width:2px; border-style:solid; ">
-	<legend style="color:#000099;"><b>Expert settings</b></legend>
+	<div align="center"><input type="Submit" value="Submit Settings" name="'.PSNG_ACTION_SETTINGS_GET.'">&nbsp;
+			<input type="Submit" value="Reset to initial values" name="'.PSNG_ACTION_SETTINGS_RESET.'"></div>
+	<div class="tab-container" id="setup">
+	  <ul class="tabs">
+	    <li><a href="#" onClick="return showPane(\'pane1\', this)" id="tab1">Global</a></li>
+	    <li><a href="#" onClick="return showPane(\'pane2\', this)">Input</a></li>
+	    <li><a href="#" onClick="return showPane(\'pane3\', this)">Output</a></li>
+	    <li><a href="#" onClick="return showPane(\'pane4\', this)">Submission</a></li>
+	  </ul>
+
+  <div class="tab-panes">  
+    <div id="pane1">
+    <h2>Global settings</h2>
 	<table border="0" cellpadding="5" cellspacing="0" width="495">
 	  <tr>
 	  	<td width="200" valign="top"><label for="ipage_root" accesskey="R">Page root</label></td>
@@ -54,24 +65,25 @@ if (!isset($SETTINGS[PSNG_COMPRESS_SITEMAP])) $SETTINGS[PSNG_COMPRESS_SITEMAP] =
 			<br /><font size="-1">url of your website</font>
 		</td>
 	  </tr>
-
 	  <tr>
-	  	<td valign="top"><label for="iping" accesskey="W">Ping google</label></td>
+	  	<td valign="top"><label for="iedit_result" accesskey="E">Display edit screen after scan</label></td>
 		<td>
-			<input type="checkbox" '. (($SETTINGS[PSNG_PINGGOOGLE] != '') ? 'checked':'') .' name="'.PSNG_PINGGOOGLE.'" id="iping" align="LEFT" size="50" value="TRUE"/>Ping after update<br />
-			<font size="-1">always inform google when sitemap is created</font>
+			<input type="checkbox" '.(($SETTINGS[PSNG_EDITRESULT] == PSNG_EDITRESULT_TRUE) ? 'checked':'') .' name="'.PSNG_EDITRESULT.'" id="iedit_result" align="LEFT" size="50" value="TRUE"/>Display edit screen<br />
+			<font size="-1">setup values for each url (priority, lastmod, changefreq, enabled/disabled) - might take some time with more than 1000 urls!</font>
 		</td>
 	  </tr>
-
 	  <tr>
-	  	<td valign="top"><label for="iping" accesskey="W">Compress sitemap</label></td>
+	  	<td valign="top"><label for="istore_filelist" accesskey="B">Store filelist</label></td>
 		<td>
-			<input onClick="checkSetupCompress()"' . (function_exists('gzencode')?'':'disabled') . ' type="checkbox" '. (($SETTINGS[PSNG_COMPRESS_SITEMAP] != '') ? 'checked':'') .' name="'.PSNG_COMPRESS_SITEMAP.'" id="icompress" align="LEFT" size="50" value="TRUE"/>Compress sitemap '.
-				(function_exists('gzencode')?'':'(not available within your php installation (need gzip functionality enabled)!)').'
-				<br/><font size="-1">(with gzip; necessary if uncompressed sitemap is larger than 10 MB)</font>
+			<input type="checkbox" '.(($SETTINGS[PSNG_STORE_FILELIST] != '') ? 'checked':'') .' name="'.PSNG_STORE_FILELIST.'" id="istore_filelist" align="LEFT" size="50" value="TRUE"/>Create and use filelist<br />
+			<font size="-1">store values of created sitemap for next creation of the sitemap (values of priority, changefreq and enabled/disabled will be stored)</font>
 		</td>
 	  </tr>
+	</table></div>
 
+    <div id="pane2">
+    <h2>Input-specific settings</h2>
+	<table border="0" cellpadding="5" cellspacing="0" width="495">
 	  <tr>
 	  	<td valign="top"><label for="itimeout" accesskey="O" title="stop the execution after an amount of time">Timeout</label></td>
 		<td>
@@ -90,23 +102,6 @@ if (!isset($SETTINGS[PSNG_COMPRESS_SITEMAP])) $SETTINGS[PSNG_COMPRESS_SITEMAP] =
 				Optional: crawl only this url: <input type="Text" name="'.PSNG_CRAWLER_URL.'" id="icrawlerurl" align="LEFT" size="50" value="'.$SETTINGS[PSNG_CRAWLER_URL].'"/><br/>Will only crawl this url and subdirectories!</font></p>
 		</td>
 	  </tr>
-
-	  <tr>
-	  	<td valign="top"><label for="iedit_result" accesskey="E">Display edit screen after scan</label></td>
-		<td>
-			<input type="checkbox" '.(($SETTINGS[PSNG_EDITRESULT] == PSNG_EDITRESULT_TRUE) ? 'checked':'') .' name="'.PSNG_EDITRESULT.'" id="iedit_result" align="LEFT" size="50" value="TRUE"/>Display edit screen<br />
-			<font size="-1">setup values for each url (priority, lastmod, changefreq, enabled/disabled) - might take some time with more than 1000 urls!</font>
-		</td>
-	  </tr>
-
-	  <tr>
-	  	<td valign="top"><label for="istore_filelist" accesskey="B">Store filelist</label></td>
-		<td>
-			<input type="checkbox" '.(($SETTINGS[PSNG_STORE_FILELIST] != '') ? 'checked':'') .' name="'.PSNG_STORE_FILELIST.'" id="istore_filelist" align="LEFT" size="50" value="TRUE"/>Create and use filelist<br />
-			<font size="-1">store values of created sitemap for next creation of the sitemap (values of priority, changefreq and enabled/disabled will be stored)</font>
-		</td>
-	  </tr>
-
 	  <tr>
 	  	<td valign="top"><label for="idisallow_dir" accesskey="D">Exclude directories</label></td>
 		<td>
@@ -128,21 +123,32 @@ if (!isset($SETTINGS[PSNG_COMPRESS_SITEMAP])) $SETTINGS[PSNG_COMPRESS_SITEMAP] =
 			<textarea name="'.PSNG_DISALLOW_KEY.'" cols="40" rows="10" id="idisallow_key">'.arrToString($SETTINGS[PSNG_DISALLOW_KEY]).'</textarea>
 		</td>
 	  </tr>
+	</table></div>
+
+    <div id="pane3">
+    <h2>Output-specific settings</h2>
+	<table border="0" cellpadding="5" cellspacing="0" width="495">
 	  <tr>
-	  	<td valign="top"><label for="isitemap_url" accesskey="S">Sitemap file</label></td>
+	  	<td valign="top"><label for="isitemap_url" accesskey="S">Google Sitemaps</label></td>
 		<td>
 			<input type="Text" name="'.PSNG_SITEMAP_FILE.'" id="isitemap_url" align="LEFT" size="50" value="'.$SETTINGS[PSNG_SITEMAP_FILE].'"/><br />
-			<font size="-1">relativ to your page root; the generated sitemap will be stored to this file</font>
+			<font size="-1">relativ to your page root; the generated sitemap will be stored to this file - <a href="http://enarion.net/google/sitemaps/stylesheet/" target="_blank" title="Google Sitemap Stylesheet">more information</a></font><br />
+	<table>
+	  <tr>
+	  	<td valign="top"><label for="iping" accesskey="W">Compress sitemap</label></td>
+		<td>
+			<input onClick="checkSetupCompress()"' . (function_exists('gzencode')?'':'disabled') . ' type="checkbox" '. (($SETTINGS[PSNG_COMPRESS_SITEMAP] != '') ? 'checked':'') .' name="'.PSNG_COMPRESS_SITEMAP.'" id="icompress" align="LEFT" size="50" value="TRUE"/>Compress sitemap '.
+				(function_exists('gzencode')?'':'(not available within your php installation (need gzip functionality enabled)!)').'
+				<br/><font size="-1">(with gzip; necessary if uncompressed sitemap is larger than 10 MB)</font>
 		</td>
 	  </tr>
 	  <tr>
-	  	<td valign="top"><label for="itxtsitemap_url" accesskey="S">TXT Sitemap file</label><br /><font size="-1">Used by Yahoo, ...</font></td>
+	  	<td valign="top"><label for="igss">GSS header</label></td>
 		<td>
-			<input type="Text" name="'.PSNG_TXTSITEMAP_FILE.'" id="itxtsitemap_url" align="LEFT" size="50" value="'.$SETTINGS[PSNG_TXTSITEMAP_FILE].'"/><br />
-			<font size="-1">relativ to your page root; the generated txt sitemap will be stored to this file</font>
+			<input type="checkbox" '. (($SETTINGS[PSNG_GSSHEADER] == true) ? 'checked':'') .' name="'.PSNG_GSSHEADER.'" id="igss" align="LEFT" size="50" value="TRUE"/>Add Google Sitemaps stylesheet
+			<font size="-1">(a browser-internal transformation of the xml content to a nice html content - uses XSLT; the file <i>gss.xsl</i> has to be stored in the same directory than the sitemap file)</font>
 		</td>
 	  </tr>
-
 	  <tr>
 	  	<td valign="top"><label for="ilastmod" accesskey="L">Lastmod</label></td>
 		<td>
@@ -199,14 +205,49 @@ if (!isset($SETTINGS[PSNG_COMPRESS_SITEMAP])) $SETTINGS[PSNG_COMPRESS_SITEMAP] =
 						<option>never</option>
 					</select><br/>
 		</td>
-	  </tr>
-	  <tr>
-	    <td>&nbsp;</td>
-		<td><input type="Submit" value="Submit Settings" name="'.PSNG_ACTION_SETTINGS_GET.'">&nbsp;
-			<input type="Submit" value="Reset to initial values" name="'.PSNG_ACTION_SETTINGS_RESET.'">&nbsp;
+	  </tr></table>
 		</td>
 	  </tr>
-	</table>
-	</fieldset>
+	  <tr>
+	  	<td valign="top"><label for="itxtsitemap_url" accesskey="S">TXT Sitemap file</label><br /><font size="-1">Used by Yahoo, ...</font></td>
+		<td>
+			<input type="Text" name="'.PSNG_TXTSITEMAP_FILE.'" id="itxtsitemap_url" align="LEFT" size="50" value="'.$SETTINGS[PSNG_TXTSITEMAP_FILE].'"/><br />
+			<font size="-1">relativ to your page root; the generated txt sitemap will be stored to this file</font>
+		</td>
+	  </tr>
+	  <tr>
+	  	<td valign="top"><label for="ihtmlsitemap_url" >HTML Sitemap file</label><br /><font size="-1">A HTML-based Sitemap</font></td>
+		<td>
+			<input type="Text" name="'.PSNG_HTMLSITEMAP_FILE.'" id="ihtmlsitemap_url" align="LEFT" size="50" value="'.$SETTINGS[PSNG_HTMLSITEMAP_FILE].'"/><br />
+			<font size="-1">relativ to your page root; the generated HTML sitemap will be stored to this file</font>
+		</td>
+	  </tr>
+	  <tr>
+	  	<td valign="top"><label for="irsssitemap_url" >RSS Sitemap file</label><br /><font size="-1">RSS-based Sitemap</font></td>
+		<td>
+			<input type="Text" name="'.PSNG_RSSSITEMAP_FILE.'" id="irsssitemap_url" align="LEFT" size="50" value="'.$SETTINGS[PSNG_RSSSITEMAP_FILE].'"/><br />
+			<font size="-1">relativ to your page root; the generated RSS sitemap will be stored to this file</font>
+		</td>
+	  </tr>
+	</table></div>
+
+    <div id="pane4">
+    <h2>Submission settings</h2>
+	<table border="0" cellpadding="5" cellspacing="0" width="495">
+	  <tr>
+	  	<td valign="top"><label for="iping" accesskey="W">PING search engines</label></td>
+		<td>
+			<input type="checkbox" '. (($SETTINGS[PSNG_PINGGOOGLE] != '') ? 'checked':'') .' name="'.PSNG_PINGGOOGLE.'" id="iping" align="LEFT" size="50" value="TRUE"/>Ping Google<br />
+			<font size="-1">requires Google Sitemaps output file, automatically</font><br />
+			<input type="checkbox" '. (($SETTINGS[PSNG_PINGMSN] != '') ? 'checked':'') .' name="'.PSNG_PINGMSN.'" id="iping" align="LEFT" size="50" value="TRUE"/>Ping MSN<br />
+			<font size="-1">requires RSS sitemap file, needs user input</font><br />
+			<input type="checkbox" '. (($SETTINGS[PSNG_PINGYAHOO] != '') ? 'checked':'') .' name="'.PSNG_PINGYAHOO.'" id="iping" align="LEFT" size="50" value="TRUE"/>Ping Yahoo<br />
+			<font size="-1">requires RSS sitemap file, needs user input</font>
+		</td>
+	  </tr>
+	</table></div>
+	</div></div>
+	<div align="center"><input type="Submit" value="Submit Settings" name="'.PSNG_ACTION_SETTINGS_GET.'">&nbsp;
+			<input type="Submit" value="Reset to initial values" name="'.PSNG_ACTION_SETTINGS_RESET.'"></div>
 	</form></div>';
 ?>

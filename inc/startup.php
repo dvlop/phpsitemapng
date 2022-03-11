@@ -15,7 +15,7 @@ if (isset($_REQUEST['debug'])) {
 
 // this script is greedy! :(
 $timeout_before = ini_get('max_execution_time');
-@set_time_limit(0);
+@set_time_limit(0); //5*60); // default: 5 minutes
 $timeout_after = ini_get('max_execution_time');
 @ini_set('memory_limit', '128M');
 @ini_set('allow_url_fopen','1');
@@ -29,6 +29,8 @@ include_once(dirname(__FILE__).'/functions/settings.inc.php');
 include_once(dirname(__FILE__).'/classes/Crawler.class.php');
 include_once(dirname(__FILE__).'/classes/FilesystemHandler.class.php');
 include_once(dirname(__FILE__).'/classes/LayoutEngine.class.php');
+include_once(dirname(__FILE__).'/classes/feedcreator.class.php');
+
 include_once(dirname(__FILE__).'/gsgxml/GsgXml.class.php');
 
 $SETTINGS[PSNG_FILE_SETTINGS] = 	'settings/settings.inc.php';
@@ -61,4 +63,5 @@ if ($SETTINGS[PSNG_TIMEOUT] != PSNG_TIMEOUT_NONE) {
 //	$SETTINGS[PSNG_TIMEOUT_TIME_DURATION] = ($timeout_after != 0)?$timeout_after : 30;
 	$SETTINGS[PSNG_TIMEOUT_TIME_DEADLINE] = $SETTINGS[PSNG_TIMEOUT_TIME_START] + $SETTINGS[PSNG_TIMEOUT_TIME_DURATION] - $SETTINGS[PSNG_TIMEOUT_TIME_SHUTDOWN];
 }
+$SETTINGS['cron'] = false;
 ?>

@@ -28,6 +28,8 @@ class LayoutEngine {
     	$this->content['charset'] = "";
 		$this->content['header'] = array();
     	$this->content['css'] = array();
+    	$this->content['css_files'] = array();
+    	$this->content['js_files'] = array();
     	$this->content['body'] = array();
     	$this->static_title = $staticTitle;
     }
@@ -60,6 +62,14 @@ class LayoutEngine {
     	} else {
     		print $tmp;
     	}
+    }
+    
+    function addJsFile($filename) {
+    	$this->content['js_files'][] = '<script src="'.$filename.'" type="text/javascript"></script>';
+    }
+
+    function addCssFile($filename) {
+    	$this->content['css_files'][] = '<link rel="stylesheet" type="text/css" href="'.$filename.'" />';
     }
 
     function setTitle($msg) {
@@ -119,7 +129,14 @@ class LayoutEngine {
     	} else {
     		print $tmp;
     	}
-    	
+    }
+    
+    function addHtml($htmlcode) {
+    	if ($this->buffering) {
+    		$this->content['body'][] = $htmlcode;
+    	} else {
+    		print $htmlcode;
+    	}
     }
         
     function addDebug($msg, $title = '') {
@@ -175,7 +192,18 @@ class LayoutEngine {
     			$res .= $head . "\n";
     		}
     	}
+		// java script
+    	if (is_array($this->content['js_files'])) {
+    		foreach($this->content['js_files'] as $tmpId => $row) 
+    			$res .= $row."\n";
+    	}
+
     	// css
+    	if (is_array($this->content['css_files'])) {
+    		foreach($this->content['css_files'] as $tmpId => $row) 
+    			$res .= $row."\n";
+    	}
+
     	$res .= '<style type="text/css">'."\n".'<!--'."\n";
     	if(($this->content['css'] != "") && count($this->content['css']) > 0) {
 	    	foreach ($this->content['css'] as $id => $line) {
@@ -185,15 +213,15 @@ class LayoutEngine {
     	$res .= '-->'."\n".'</style>'."\n";
 		
 		//end of head
-		$res .= '</head><body>'."\n";
+		$res .= '</head><body onload=\'setupPanes("setup", "tab1");\'>'."\n"; // Hack!
 		 
-		$res .= '<h1>'.$this->content['title'].'</h1>';
-		
 		if(($this->content['content_header'] != "") && count($this->content['content_header'])>0) {		
 	    	foreach ($this->content['content_header'] as $id =>  $line) {
 	    		$res .= $line . "\n";
 	    	}
 		}
+//		$res .= '<h1>'.$this->content['title'].'</h1>'."\n";		
+
     	return $res;
     }
     
@@ -208,7 +236,19 @@ class LayoutEngine {
 	    			$res .= $head . "\n";
 	    		}
 	    	}
+
+			// java script
+	    	if (is_array($this->content['js_files'])) {
+	    		foreach($this->content['js_files'] as $tmpId => $row) 
+	    			$res .= $row."\n";
+	    	}
+
 	    	// css
+	    	if (is_array($this->content['css_files'])) {
+	    		foreach($this->content['css_files'] as $tmpId => $row) 
+	    			$res .= $row."\n";
+	    	}
+	    	
 	    	$res .= '<style type="text/css">'."\n".'<!--'."\n";
 	    	if(($this->content['css'] != "") && count($this->content['css']) > 0) {
 		    	foreach ($this->content['css'] as $id => $line) {
@@ -218,15 +258,15 @@ class LayoutEngine {
 	    	$res .= '-->'."\n".'</style>'."\n";
 			
 			//end of head
-			$res .= '</head><body>'."\n";
+			$res .= '</head><body onload=\'setupPanes("setup", "tab1");\'>'."\n"; // Hack!
 			 
-			$res .= '<h1>'.$this->content['title'].'</h1>';
-			
 			if(($this->content['content_header'] != "") && count($this->content['content_header'])>0) {		
 		    	foreach ($this->content['content_header'] as $id => $line) {
 		    		$res .= $line . "\n";
 		    	}
 			}
+
+//			$res .= '<h1>'.$this->content['title'].'</h1>'."\n";
 			
 			if(($this->content['body'] != "") && count($this->content['body']) > 0) {		
 		    	foreach ($this->content['body'] as $id => $line) {

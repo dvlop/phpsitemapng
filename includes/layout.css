@@ -1,0 +1,101 @@
+.tabs {
+	position: relative;
+	height: 27px;
+	margin: 0;
+	padding: 0;
+	background: url("bar_off.gif") repeat-x;
+	overflow: hidden
+}
+
+.tabs li {
+	display: inline;
+}
+
+.tabs a:hover,.tabs a.tab-active {
+	background: #fff url("bar_on.gif") repeat-x;
+	border-right: 1px solid #fff
+}
+
+.tabs a {
+	height: 27px;
+	font: 12px verdana, helvetica, sans-serif;;
+	font-weight: bold;
+	position: relative;
+	padding: 6px 10px 10px 10px;
+	margin: 0px -4px 0px 0px;
+	color: #2B4353;;
+	text-decoration: none;;
+	border-left: 1px solid #fff;
+	border-right: 1px solid #6D99B6;
+}
+
+.tab-container {
+	background: #fff;
+	border: 1px solid #6D99B6;
+}
+
+.tab-panes {
+	margin: 3px
+}
+
+.history,.required {
+	background-color: #E0E0E0;
+}
+
+.source_fs {
+	background-color: #FF70CC;
+}
+
+.source_website {
+	background-color: #CCFF70;
+}
+
+.source_fs_website {
+	background-color: #70CCFF;
+}
+
+#body {
+	position: absolute;
+	left: 150px;
+	top: 200px;
+	width: 600px;
+}
+
+.notfound {
+	background-color: #FF3030;
+}
+
+Label {
+	color: #000099;
+	font-weight: bold;
+}
+
+h1,h2,h3 {
+	color: #000099;
+}
+
+.error {
+	color: #cc0000;
+	font-weight: bold;
+}
+
+.warning {
+	color: #000000;
+	font-weight: italic;
+}
+
+.info {
+	color: #000000;
+	font-weight: normal;
+}
+
+.success {
+	color: #009900;
+	font-weight: bold;
+}
+
+body {
+	color: #000000;
+	font-family: helvetica;
+	background-color: #ffffff;
+}

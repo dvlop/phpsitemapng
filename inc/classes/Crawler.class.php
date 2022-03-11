@@ -172,6 +172,10 @@ class Crawler {
 			return;
 		}
 
+		// extract /html/head/title
+		preg_match("/(<title>)(.)*(<\/title>)/i", $res, $htmlTitle);
+		$info['title'] = strip_tags($htmlTitle[0]);
+
 		// if not allready in list of files, add it
 		if (!array_key_exists($url, $this->files) && $info['location'] == '') {
 			$info['file'] = $url;
@@ -205,6 +209,7 @@ class Crawler {
 			$a_end += 3;
 			$res = substr_replace($res, '', $a_begin, ($a_end - $a_begin));
 		}
+
 
 		// contribution by vvkov
 //		preg_match_all("/<[Aa][ \r\n\t]{1}[^>]*[Hh][Rr][Ee][Ff][^=]*=[ '\"\n\r\t]*([^ \"'>]+)[^>]*>/",$res ,$urls);
